@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# If DATABASE_URL is set, use it, otherwise use SQLite
+if [ -z "${DATABASE_URL:-}" ]; then
+  >&2 echo 'Using SQLite database'
+else
+  >&2 echo 'Using custom database configuration from DATABASE_URL'
+fi
+
+exec "$@"

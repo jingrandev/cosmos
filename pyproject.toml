@@ -1,0 +1,197 @@
+[project]
+name = "cosmos"
+version = "0.1.0"
+description = "Backend service for eitr assignment"
+readme = "README.md"
+authors = [
+  { name = "Jingran Zhou", email = "jingranzhou@126.com" },
+]
+requires-python = ">=3.12"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Web Environment",
+  "Framework :: Django",
+  "Framework :: Django :: 5.2",
+  "Intended Audience :: Developers",
+  "Private :: Do Not Upload",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+dependencies = [
+  "django>=5.2",
+  "django-environ>=0.12",
+  "django-extensions>=4.1",
+  "django-filter>=25.1",
+  "django-model-utils>=5",
+  "djangorestframework>=3.15",
+  "djangorestframework-simplejwt>=5.3.1",
+  "djoser>=2.3.1",
+  "drf-spectacular>=0.27.1",
+  "loguru>=0.7.3",
+  "mysqlclient>=2.2",
+  "stackprinter>=0.2.12",
+]
+
+[dependency-groups]
+dev = [
+  "coverage>=7.7.1",
+  "django-coverage-plugin>=3.1",
+  "django-debug-toolbar>=4.3",
+  "django-silk>=5.1",
+  "pytest>=8.3.5",
+  "pytest-cov>=6",
+  "pytest-django>=4.10",
+  "pytest-env>=1.1.5",
+  "pytest-sugar>=1",
+  "pytest-xdist>=3.6.1",
+  "responses>=0.25.8",
+  "ruff>=0.11.2",
+]
+prod = [
+]
+
+[tool.black]
+line-length = 119
+target-version = [ "py312" ]
+
+[tool.ruff]
+target-version = "py312"
+
+line-length = 119
+# Exclude a variety of commonly ignored directories.
+extend-exclude = [
+  "*/migrations/*.py",
+  "protos/*",
+  "staticfiles/*",
+]
+lint.select = [
+  "B",   # Bugbear potential errors
+  "C4",  # comprehension optimization
+  "DJ",  # Django dedicated rules
+  "E",   # PEP8 basic errors
+  "F",   # Pyflakes logical errors
+  "I",   # import sorting
+  "PGH", # Pytest dedicated rules
+  "UP",  # new Python syntax upgrade
+  "W",   # PEP8 warnings
+]
+lint.ignore = [
+  "COM812", # Missing trailing comma in Python 3.6+ collection literals
+  "ISC001", # Implicitly concatenated string literals on one line
+  "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+  "S101",   # Use of assert detected https://docs.astral.sh/ruff/rules/assert/
+  "SIM102", # sometimes it's better to nest
+]
+lint.exclude = [ "manage.py" ]
+# The fixes in extend-unsafe-fixes will require
+# provide the `--unsafe-fixes` flag when fixing.
+lint.extend-unsafe-fixes = [
+]
+lint.isort.force-single-line = true
+
+[tool.tomlsort]
+all = false
+in_place = true
+no_sort_tables = false
+sort_table_keys = true
+sort_first = [
+  "project",
+  "dependency",
+]
+
+[tool.tomlsort.overrides."project"]
+first = [
+  "name",
+  "version",
+  "description",
+  "authors",
+  "readme",
+  "requires-python",
+  "license",
+  "classifiers",
+  "dependencies",
+]
+
+[tool.tomlsort.overrides."tool.tomlsort"]
+table_keys = false
+
+[tool.pytest]
+
+[tool.pytest.ini_options]
+addopts = """
+    --no-migrations
+    -v
+    -n auto
+    --reuse-db
+    -x
+    --tb=short
+"""
+env = [
+  "DJANGO_READ_DOT_ENV_FILE=false",
+  "DJANGO_SETTINGS_MODULE=config.settings.test",
+]
+python_files = [ "test_*.py", "*_test.py", "tests.py" ]
+
+[tool.coverage]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "def __str__",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.coverage.run]
+omit = [
+  "*/migrations/*",
+  "*/protos/*",
+  "*/tests/*",
+  "*/admin.py",
+  "*/apps.py",
+]
+source = [ "core" ]
+
+[tool.mypy]
+check_untyped_defs = true
+ignore_missing_imports = true
+plugins = [
+  "mypy_django_plugin.main",
+  "mypy_drf_plugin.main",
+]
+python_version = "3.12"
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+ignore_errors = true
+# Django migrations should not produce any errors:
+module = "*.migrations.*"
+
+[tool.djlint]
+blank_line_after_tag = "load,extends"
+close_void_tags = true
+format_css = true
+format_js = true
+# TODO: remove T002 when fixed https://github.com/djlint/djLint/issues/687
+ignore = "H006,H030,H031,T002"
+include = "H017,H035"
+indent = 2
+max_line_length = 119
+profile = "django"
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[tool.djlint.css]
+indent_size = 2
+
+[tool.djlint.js]
+indent_size = 2

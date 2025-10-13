@@ -1,0 +1,10 @@
+# General
+# ------------------------------------------------------------------------------
+# DJANGO_READ_DOT_ENV_FILE=True
+DJANGO_SETTINGS_MODULE=config.settings.local
+DJANGO_SECRET_KEY=django-insecure-development-key-for-local-use-only
+DJANGO_DEBUG=True
+
+# Security
+# ------------------------------------------------------------------------------
+DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1
