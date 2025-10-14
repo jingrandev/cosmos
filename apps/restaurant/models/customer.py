@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from core.db.models import BaseModel
 
 
-class Customer(BaseModel):
+class CustomerProfile(BaseModel):
     class DietaryPreference(models.TextChoices):
         VEGAN = "vegan", _("vegan")
         VEGETARIAN = "vegetarian", _("vegetarian")
