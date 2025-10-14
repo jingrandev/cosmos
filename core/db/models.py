@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from core.db.mixins import SoftDeleteMixin
@@ -7,8 +6,8 @@ from core.db.mixins import SoftDeleteMixin
 
 class BaseModel(models.Model):
     """
-    Base model class that provides common fields and functionality for all models.
-    This model does NOT include soft delete functionality.
+    Base model class that provides common fields and functionality for
+    all models. This model does NOT include soft delete functionality.
 
     Fields:
         created_at: When the record was created
@@ -18,7 +17,6 @@ class BaseModel(models.Model):
     # Database Fields
     created_at = models.DateTimeField(
         verbose_name=_("Created at"),
-        default=timezone.now,
         editable=False,
         auto_now_add=True,
         help_text=_("When this record was created"),
@@ -38,8 +36,8 @@ class BaseModel(models.Model):
 
 class SoftDeleteBaseModel(SoftDeleteMixin, BaseModel):
     """
-    Base model class that provides common fields and functionality for all models,
-    including soft delete functionality.
+    Base model class that provides common fields and functionality for
+    all models, including soft delete functionality.
 
     Fields:
         created_at: When the record was created (from BaseModel)
