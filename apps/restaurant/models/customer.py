@@ -25,6 +25,10 @@ class CustomerProfile(BaseModel):
         choices=DietaryPreference.choices,
         default=DietaryPreference.UNKNOWN,
     )
+    favorite_dishes = models.JSONField(
+        _("favorite dishes"),
+        default=list,
+    )
 
     class Meta:
         db_table = "restaurant_customer"

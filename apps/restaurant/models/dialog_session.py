@@ -24,6 +24,13 @@ class DialogSession(BaseModel):
     )
     messages = models.JSONField(_("messages"), default=list)
     analysis_result = models.JSONField(_("analysis result"), default=dict)
+    customer = models.ForeignKey(
+        "restaurant.CustomerProfile",
+        related_name="dialogs",
+        db_index=True,
+        db_constraint=False,
+        on_delete=models.CASCADE,
+    )
 
     class Meta:
         db_table = "restaurant_conversation_session"

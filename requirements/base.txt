@@ -64,6 +64,10 @@ djoser==2.3.3
     # via cosmos
 drf-spectacular==0.28.0
     # via cosmos
+factory-boy==3.3.3
+    # via cosmos
+faker==37.11.0
+    # via factory-boy
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -149,8 +153,10 @@ typing-extensions==4.15.0
     #   typing-inspection
 typing-inspection==0.4.2
     # via pydantic
-tzdata==2025.2 ; sys_platform == 'win32'
-    # via django
+tzdata==2025.2
+    # via
+    #   django
+    #   faker
 uritemplate==4.2.0
     # via drf-spectacular
 urllib3==2.5.0

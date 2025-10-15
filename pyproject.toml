@@ -31,6 +31,7 @@ dependencies = [
   "djangorestframework-simplejwt>=5.3.1",
   "djoser>=2.3.1",
   "drf-spectacular>=0.27.1",
+  "factory-boy>=3.3.3",
   "loguru>=0.7.3",
   "mysqlclient>=2.2",
   "openai>=2.3",
@@ -57,13 +58,13 @@ prod = [
 ]
 
 [tool.black]
-line-length = 79
+line-length = 88
 target-version = [ "py312" ]
 
 [tool.ruff]
 target-version = "py312"
 
-line-length = 79
+line-length = 88
 # Exclude a variety of commonly ignored directories.
 extend-exclude = [
   "*/migrations/*.py",
@@ -186,7 +187,7 @@ format_js = true
 ignore = "H006,H030,H031,T002"
 include = "H017,H035"
 indent = 2
-max_line_length = 79
+max_line_length = 88
 profile = "django"
 
 [tool.django-stubs]

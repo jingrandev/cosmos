@@ -3,17 +3,21 @@ from typing import Any
 
 from django.contrib.auth import get_user_model
 from factory import Faker
+from factory import LazyAttribute
 from factory import post_generation
 from factory.django import DjangoModelFactory
+from faker import Faker as FakerFactory
+
+fake = FakerFactory()
 
 User = get_user_model()
 
 
 class UserFactory(DjangoModelFactory[User]):
-    username = Faker("user_name")
-
-    email = Faker("email")
-    name = Faker("name")
+    username = LazyAttribute(lambda _: f"{fake.user_name()}")
+    first_name = Faker("first_name")
+    last_name = Faker("last_name")
+    email = LazyAttribute(lambda obj: f"{obj.username}@{fake.domain_name()}")
 
     @post_generation
     def password(self, create: bool, extracted: Sequence[Any], **kwargs):  # noqa: FBT001
