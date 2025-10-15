@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -12,7 +13,7 @@ class CustomerProfile(BaseModel):
         UNKNOWN = "unknown", _("unknown")
 
     user = models.OneToOneField(
-        "auth.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         db_constraint=False,
         db_index=True,

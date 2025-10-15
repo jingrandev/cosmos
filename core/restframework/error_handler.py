@@ -1,6 +1,10 @@
 from typing import Any
 
+from django.http import Http404
 from django.utils.translation import gettext_lazy as _
+from rest_framework import exceptions
+from rest_framework.response import Response
+from rest_framework.views import exception_handler
 
 error_registry: dict[int, type] = {}
 
@@ -60,3 +64,13 @@ class BaseError(Exception):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(code={self.code}, message={self.message!r})>"
+
+
+def handle_exception(exc: Exception, context: dict[str, Any]) -> Response:
+    if isinstance(exc, BaseError):
+        response = Response(exc.get_response_data(), status=402)
+    else:
+        if isinstance(exc, Http404):
+            exc = exceptions.NotFound(detail=str(exc) or None)
+        response = exception_handler(exc, context)
+    return response
