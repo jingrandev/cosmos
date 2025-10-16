@@ -15,7 +15,7 @@ Backend service for eitr assignment
 1. Clone and enter the project directory
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:jingrandev/cosmos.git
 cd cosmos
 ```
 
