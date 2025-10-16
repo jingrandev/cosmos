@@ -345,7 +345,7 @@ class ReplyOrderState(BaseState):
         return {
             "forbid_newline": True,
             "validate_quotation": True,
-            "forbid_question_mark": True,
+            # "forbid_question_mark": True,
         }
 
     def persist_state(self, previous_state: OrderState) -> None:
