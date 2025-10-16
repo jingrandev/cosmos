@@ -19,9 +19,11 @@ COPY requirements/ requirements/
 RUN pip install --no-cache-dir -r requirements/production.txt
 
 COPY . /app
+COPY compose/production/django/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
 RUN python manage.py collectstatic --noinput || true
 
 EXPOSE 8080
 
-CMD ["gunicorn", "-c", "config/gunicorn.conf.py", "config.asgi:application"]
+CMD ["/app/start.sh"]
