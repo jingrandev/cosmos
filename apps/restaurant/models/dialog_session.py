@@ -6,6 +6,7 @@ from core.db.models import BaseModel
 
 class DialogSession(BaseModel):
     class CustomerOrderState(models.TextChoices):
+        INIT = "init", _("init")
         GREETING = "greeting", _("greeting")
         DAY_REPLY = "day_reply", _("day reply")
         ASK_FAVORITES = "ask_favorites", _("ask favorites")
@@ -19,11 +20,13 @@ class DialogSession(BaseModel):
         _("state"),
         max_length=32,
         choices=CustomerOrderState.choices,
-        default=CustomerOrderState.GREETING,
+        default=CustomerOrderState.INIT,
         db_index=True,
     )
     messages = models.JSONField(_("messages"), default=list)
     analysis_result = models.JSONField(_("analysis result"), default=dict)
+    customer_favorite_text = models.TextField(_("customer favorite text"), default="")
+    customer_order_text = models.TextField(_("customer order text"), default="")
     customer = models.ForeignKey(
         "restaurant.CustomerProfile",
         related_name="dialogs",
