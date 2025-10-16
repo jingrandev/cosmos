@@ -1,5 +1,7 @@
 # Cosmos
 
+![coverage](badges/coverage.svg)
+
 Backend service for eitr assignment
 
 ## Getting Started
