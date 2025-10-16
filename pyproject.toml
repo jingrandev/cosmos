@@ -55,11 +55,9 @@ dev = [
   "ruff>=0.11.2",
 ]
 prod = [
+  "gunicorn>=23",
+  "uvicorn>=0.37",
 ]
-
-[tool.black]
-line-length = 88
-target-version = [ "py312" ]
 
 [tool.ruff]
 target-version = "py312"
@@ -156,6 +154,7 @@ omit = [
   "*/migrations/*",
   "*/protos/*",
   "*/tests/*",
+  "*/scripts/*",
   "*/admin.py",
   "*/apps.py",
 ]

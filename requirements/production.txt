@@ -19,8 +19,11 @@ cffi==2.0.0 ; platform_python_implementation != 'PyPy'
     # via cryptography
 charset-normalizer==3.4.3
     # via requests
+click==8.3.0
+    # via uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
     # via
+    #   click
     #   loguru
     #   pytest
     #   tqdm
@@ -83,8 +86,11 @@ faker==37.11.0
     # via factory-boy
 gprof2dot==2025.4.14
     # via django-silk
+gunicorn==23.0.0
 h11==0.16.0
-    # via httpcore
+    # via
+    #   httpcore
+    #   uvicorn
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
@@ -115,7 +121,9 @@ oauthlib==3.3.1
 openai==2.3.0
     # via cosmos
 packaging==25.0
-    # via pytest
+    # via
+    #   gunicorn
+    #   pytest
 pluggy==1.6.0
     # via
     #   pytest
@@ -210,5 +218,6 @@ urllib3==2.5.0
     # via
     #   requests
     #   responses
+uvicorn==0.37.0
 win32-setctime==1.2.0 ; sys_platform == 'win32'
     # via loguru
