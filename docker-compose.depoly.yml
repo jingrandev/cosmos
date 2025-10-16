@@ -1,0 +1,43 @@
+version: '3.9'
+services:
+  django:
+    build:
+      context: .
+      dockerfile: compose/production/django/Dockerfile
+    ports:
+      - '8080:8080'
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.deploy
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DATABASE_URL: ${DATABASE_URL}
+    env_file:
+      - ./.env
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+  mysql:
+    image: docker.io/mysql:8.4
+    container_name: cosmos_mysql
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_TCP_PORT: 3306
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent',
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
