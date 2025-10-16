@@ -14,7 +14,6 @@ class DialogSession(BaseModel):
         ASK_ORDER = "ask_order", _("ask order")
         ORDER_REPLY = "order_reply", _("order reply")
         ANALYZE = "analyze", _("analyze")
-        COMPLETE = "complete", _("complete")
 
     state = models.CharField(
         _("state"),

@@ -4,25 +4,37 @@ import random
 from typing import Any
 
 from apps.restaurant.constants import OrderState
+from apps.restaurant.roles.analyze import AnalyzeDialogRole
 from apps.restaurant.roles.base import DialogMessage
 from apps.restaurant.roles.base import RestaurantRole
+from apps.restaurant.roles.customer import CustomerRole
+from apps.restaurant.roles.waiter import WaiterRole
 from apps.restaurant.serializers.output_validate import AnalyzeResultSerializer
 from apps.restaurant.serializers.output_validate import StringOutputSerializer
 
 from ..models import Dish
 from ..models.dialog_session import DialogSession
 
+state_registry: dict[OrderState, type["BaseState"]] = {}
+
 
 class BaseState:
-    state: str
+    state: OrderState
 
-    def __init__(self, session: DialogSession, role: RestaurantRole) -> None:
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        state_registry[cls.state] = cls
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
         self.role = role
         self.session = session
+        self.output: Any | None = None
 
     def validate_output(self, text: str, silent: bool = True) -> tuple[Any, bool]:
-        SC = self.get_serializer_class()
-        serializer = SC(data={"value": text}, context=self.get_serializer_context())
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(
+            data={"value": text}, context=self.get_serializer_context()
+        )
         ok = serializer.is_valid(raise_exception=not silent)
         if ok:
             return serializer.validated_data.get("value", text), True
@@ -58,11 +70,18 @@ class BaseState:
             model=model,
         )
         validated_text, ok = self.validate_output(text)
+        self.output = validated_text
         return validated_text, ok
+
+    def persist_state(self, previous_state: OrderState) -> None:
+        pass
 
 
 class GreetingState(BaseState):
     state: str = OrderState.GREETING
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or WaiterRole())
 
     def system_prompt(self) -> str:
         return f"""
@@ -89,9 +108,22 @@ class GreetingState(BaseState):
             "require_question_mark": True,
         }
 
+    def persist_state(self, previous_state: OrderState) -> None:
+        messages = list(self.session.messages or [])
+        messages.append({"role": "waiter", "content": self.output or ""})
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            messages=messages,
+            state=self.state,
+        )
+
 
 class ReplyGreetingState(BaseState):
     state: str = OrderState.DAY_REPLY
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or CustomerRole())
 
     def system_prompt(self) -> str:
         day_status_choices = [
@@ -126,9 +158,22 @@ class ReplyGreetingState(BaseState):
             "forbid_question_mark": True,
         }
 
+    def persist_state(self, previous_state: OrderState) -> None:
+        messages = list(self.session.messages or [])
+        messages.append({"role": "customer", "content": self.output or ""})
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            messages=messages,
+            state=self.state,
+        )
+
 
 class AskFavoritesState(BaseState):
     state: str = OrderState.ASK_FAVORITES
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or WaiterRole())
 
     def system_prompt(self) -> str:
         return f"""
@@ -154,12 +199,25 @@ class AskFavoritesState(BaseState):
         return {
             "forbid_newline": True,
             "forbid_wrapped_quotes": True,
-            "require_question_mark": True,
+            # "require_question_mark": True,
         }
+
+    def persist_state(self, previous_state: OrderState) -> None:
+        messages = list(self.session.messages or [])
+        messages.append({"role": "waiter", "content": self.output or ""})
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            messages=messages,
+            state=self.state,
+        )
 
 
 class AnswerFavoritesState(BaseState):
     state: str = OrderState.FAVORITES_REPLY
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or CustomerRole())
 
     def system_prompt(self) -> str:
         return f"""
@@ -179,6 +237,7 @@ class AnswerFavoritesState(BaseState):
         3. Format as a single line with no line breaks.
         4. Do NOT enclose in quotation marks.
         5. Never list fewer or more than 3 foods—exactly 3 must be mentioned.
+        6. Do NOT ask any questions.
         """
 
     def get_serializer_context(self) -> dict:
@@ -188,9 +247,23 @@ class AnswerFavoritesState(BaseState):
             "forbid_question_mark": True,
         }
 
+    def persist_state(self, previous_state: OrderState) -> None:
+        messages = list(self.session.messages or [])
+        messages.append({"role": "customer", "content": self.output or ""})
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            messages=messages,
+            customer_favorite_text=(self.output or ""),
+            state=self.state,
+        )
+
 
 class AskOrderState(BaseState):
     state: str = OrderState.ASK_ORDER
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or WaiterRole())
 
     def system_prompt(self) -> str:
         return f"""
@@ -213,12 +286,25 @@ class AskOrderState(BaseState):
         return {
             "forbid_newline": True,
             "validate_quotation": True,
-            "require_question_mark": True,
+            # "require_question_mark": True,
         }
+
+    def persist_state(self, previous_state: OrderState) -> None:
+        messages = list(self.session.messages or [])
+        messages.append({"role": "waiter", "content": self.output or ""})
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            messages=messages,
+            state=self.state,
+        )
 
 
 class ReplyOrderState(BaseState):
     state: str = OrderState.ORDER_REPLY
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or CustomerRole())
 
     def system_prompt(self) -> str:
         dishes = (
@@ -259,12 +345,23 @@ class ReplyOrderState(BaseState):
             "forbid_question_mark": True,
         }
 
-    def validate_output(self, text: str) -> bool:
-        return super().validate_output(text)
+    def persist_state(self, previous_state: OrderState) -> None:
+        messages = list(self.session.messages or [])
+        messages.append({"role": "customer", "content": self.output or ""})
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            messages=messages,
+            customer_order_text=(self.output or ""),
+            state=self.state,
+        )
 
 
 class AnalyzeState(BaseState):
     state: str = OrderState.ANALYZE
+
+    def __init__(self, session: DialogSession, role: RestaurantRole = None) -> None:
+        super().__init__(session, role or AnalyzeDialogRole())
 
     def system_prompt(self) -> str:
         dishes = Dish.objects.all().values("name", "ingredients").order_by("id")
@@ -326,9 +423,9 @@ class AnalyzeState(BaseState):
             self.system_prompt(),
             extra_messages=[
                 self.role.developer(f"""
-            Customer's Favorite: {self.session.customer_favorite_text}
-            Customer's Order: {self.session.customer_order_text}
-            """)
+                Customer's Favorite: {self.session.customer_favorite_text}
+                Customer's Order: {self.session.customer_order_text}
+                """)
             ],
         )
         text = self.role.chat(
@@ -338,6 +435,7 @@ class AnalyzeState(BaseState):
             response_format="json",
         )
         validated, ok = self.validate_output(text)
+        self.output = validated
         return validated, ok
 
     def validate_output(self, text: str, silent: bool = True) -> tuple[dict, bool]:
@@ -355,3 +453,12 @@ class AnalyzeState(BaseState):
 
     def get_serializer_class(self):
         return AnalyzeResultSerializer
+
+    def persist_state(self, previous_state: OrderState) -> None:
+        result = self.output if isinstance(self.output, dict) else {}
+        DialogSession.objects.select_for_update().filter(
+            id=self.session.id, state=previous_state
+        ).update(
+            analysis_result=result,
+            state=self.state,
+        )
