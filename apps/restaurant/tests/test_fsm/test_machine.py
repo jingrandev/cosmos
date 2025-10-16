@@ -148,8 +148,7 @@ class TestDialogStateMachine(TestCase):
         ]
 
         with patch.object(RestaurantRole, "chat", side_effect=outputs) as mock_chat:
-            user = UserFactory()
-            session = DialogSession.objects.create(customer_id=user.customer.id)
+            session = DialogSession.objects.create(customer_id=0)
             machine = DialogStateMachine.from_session(session)
 
             assert machine.safe_trigger("start_greeting")
@@ -187,7 +186,8 @@ class TestDialogStateMachine(TestCase):
         ]
 
         with patch.object(RestaurantRole, "chat", side_effect=outputs) as mock_chat:
-            session = DialogSession.objects.create(customer_id=0)
+            user = UserFactory()
+            session = DialogSession.objects.create(customer_id=user.customer.id)
             machine = DialogStateMachine.from_session(session)
 
             assert machine.safe_trigger("start_greeting")
