@@ -33,7 +33,7 @@ def setup_logging():
                 "enqueue": enable_enqueue,
                 "backtrace": enable_backtrace,
                 "diagnose": enable_diagnose,
-                "filter": lambda r: r["level"].no < logger.level("WARNING").no,
+                "filter": lambda r: r["level"].no >= logger.level("WARNING").no,
                 "format": (
                     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | "
                     "<level>{level: <8}</level> | "
@@ -58,7 +58,9 @@ def setup_logging():
                 "enqueue": enable_enqueue,
                 "backtrace": enable_backtrace,
                 "diagnose": enable_diagnose,
-                "format": ("{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"),
+                "format": (
+                    "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
+                ),
             },
             {
                 "sink": Path(log_dir) / "error.log",

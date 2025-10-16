@@ -151,7 +151,10 @@ class HTTPClient:
             logger.error(f"HTTP error: {e!s}")
             resp = getattr(e, "response", None)
             if resp is not None:
-                error_msg = f"HTTP {resp.status_code}: {getattr(resp, 'reason', '')}, {getattr(resp, 'text', '')}"
+                error_msg = (
+                    f"HTTP {resp.status_code}: {getattr(resp, 'reason', '')}, "
+                    f"{getattr(resp, 'text', '')}"
+                )
             else:
                 error_msg = str(e)
             raise ClientResponseError(error_msg) from e
@@ -227,6 +230,8 @@ class HTTPClient:
         with self._handle_request_errors():
             # Use session for the request to benefit from retry configuration
             http_method = method.value if isinstance(method, HTTPMethod) else method
-            response = self.session.request(method=http_method, url=full_url, **request_kwargs)
+            response = self.session.request(
+                method=http_method, url=full_url, **request_kwargs
+            )
             response.raise_for_status()
             return response
