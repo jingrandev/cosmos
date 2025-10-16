@@ -1,7 +1,0 @@
-# MySQL
-# ------------------------------------------------------------------------------
-MYSQL_HOST=mysql
-MYSQL_PORT=3306
-MYSQL_DB=cosmos
-MYSQL_USER=root
-MYSQL_PASSWORD=password
