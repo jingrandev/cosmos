@@ -186,6 +186,7 @@ class AskFavoritesState(BaseState):
         2. Clearly ask for their top 3 favorite foods.
         3. Add a brief, positive note to encourage them.
         4. 3-5 sentences total, with a smooth and friendly flow.
+        5. DO NOT ask any questions back.
 
         # Strict Rules
         1. Use only English.
@@ -274,6 +275,7 @@ class AskOrderState(BaseState):
         **Ask the customer what they'd like to order today**:
         1. Invite them to order, using an open and helpful tone (e.g., "feel free to choose from our menu" or "we can prepare something special based on your favorites").
         2. 2-3 sentences, flowing smoothly from their food preferences.
+        3. DO NOT ask customers if they need recommendations.
 
         # Strict Rules
         1. Use only English.
@@ -321,7 +323,7 @@ class ReplyOrderState(BaseState):
 
         # Task
         **Respond with your order**:
-        1. Choose 1-2 specific dishes in the restaurant menu.
+        1. Choose 2-3 specific dishes in the restaurant menu.
         2. dish should be in the restaurant menu
         3. Do not order same type of dishes (e.g. Grilled Tofu Salad and Fresh Fruit Salad are both salad)
         4. Briefly explain why you chose these dishes.
@@ -336,6 +338,7 @@ class ReplyOrderState(BaseState):
         3. Format as a single line with no line breaks.
         4. Do NOT enclose in quotation marks.
         5. Ensure the order connects logically to your previously mentioned favorite foods.
+        6. Order foods directly from the menu, do not ask for recommendations. DO NOT ask any questions.
         """
 
     def get_serializer_context(self) -> dict:
@@ -364,9 +367,16 @@ class AnalyzeState(BaseState):
         super().__init__(session, role or AnalyzeDialogRole())
 
     def system_prompt(self) -> str:
-        dishes = Dish.objects.all().values("name", "ingredients").order_by("id")
+        dishes = (
+            Dish.objects.all()
+            .values("name", "description", "ingredients")
+            .order_by("id")
+        )
         menu = "\n".join(
-            [f"- {dish['name']}: {dish['ingredients']}" for dish in dishes]
+            [
+                f"- {dish['name']}, {dish['description']}, {dish['ingredients']}"
+                for dish in dishes
+            ]
         )
         return f"""
         # Role
@@ -389,9 +399,11 @@ class AnalyzeState(BaseState):
         2. Extract "ordered_dishes":
             a. Locate the line starting with "Customer's Order:".
             b. Extract dishes that are EXACTLY in the restaurant menu (e.g., "Roasted Seasonal Veggies" is in the menu, so include it).
-        3. Check Customer's favorite dishes according to their description and how the dishes are categorized. Cross-check ordered_dishes with the provided menu and its ingredients.
+        3. Check Customer's favorite dishes according to their description and how the dishes are categorized. Cross-check ordered_dishes with the provided menu and its ingredients and descriptions.
             The preference detection steps is as follows:
             a. First check non-vegetarian (highest priority).
+                - If favorite_dishes contains meat or seafood dishes→ "non-vegetarian".
+                - Check if ordered_dishes contains meat or seafood dishes.
             b. If non-vegetarian is not detected, check vegetarian.
             c. If vegetarian is detected, check vegan.
             d. otherwise, check unknown:
@@ -409,7 +421,7 @@ class AnalyzeState(BaseState):
             - "favorite_dishes": list that step 1 extracted
         5. JSON must be minified (no line breaks, extra spaces). Do not include any content outside the JSON object.
 
-        # Restaurant Menu (format: - name: ingredients list)
+        # Restaurant Menu (format: - name, description, ingredients list)
         {menu}
         """
 
@@ -462,3 +474,8 @@ class AnalyzeState(BaseState):
             analysis_result=result,
             state=self.state,
         )
+        self.session.customer.dietary_preference = result.get(
+            "dietary_preference", "unknown"
+        )
+        self.session.customer.favorite_dishes = result.get("favorite_dishes", [])
+        self.session.customer.save()

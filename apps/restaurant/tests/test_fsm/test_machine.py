@@ -6,6 +6,7 @@ from django.test import TestCase
 from apps.restaurant.fsm.machine import DialogStateMachine
 from apps.restaurant.models.dialog_session import DialogSession
 from apps.restaurant.roles.base import RestaurantRole
+from core.auth.utils.factories import UserFactory
 
 
 class TestDialogStateMachine(TestCase):
@@ -147,7 +148,8 @@ class TestDialogStateMachine(TestCase):
         ]
 
         with patch.object(RestaurantRole, "chat", side_effect=outputs) as mock_chat:
-            session = DialogSession.objects.create(customer_id=0)
+            user = UserFactory()
+            session = DialogSession.objects.create(customer_id=user.customer.id)
             machine = DialogStateMachine.from_session(session)
 
             assert machine.safe_trigger("start_greeting")

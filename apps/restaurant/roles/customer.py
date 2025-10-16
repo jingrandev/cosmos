@@ -10,6 +10,8 @@ class CustomerRole(RestaurantRole):
         return """
         You are a customer at Cosmos restaurant, being served by a waiter to order food.
         You may have a certain dietary preference.
+        Your only anwser to the waiter's questions directly.
+        DO NOT ask any questions back.
         """
 
     def build_context(

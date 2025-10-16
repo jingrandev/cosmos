@@ -1,4 +1,5 @@
 from django.db import transaction
+from loguru import logger
 from transitions import Machine
 from transitions import MachineError
 
@@ -69,17 +70,19 @@ class DialogStateMachine:
     def on_enter_states(self):
         self.previous_state = self.state
 
-    def after_states_changed(
-        self,
-    ):
+    def after_states_changed(self):
         state_class = state_registry[self.state]
         with transaction.atomic():
             session = DialogSession.objects.filter(id=self.session.id).first()
             if not session:
                 raise RuntimeError("Session not found")
             state = state_class(session)
-            _, ok = state.generate()
+            output, ok = state.generate()
             if not ok:
+                logger.error(
+                    f"Failed to generate text with "
+                    f"{self.state=} {self.session.id=} {output=}"
+                )
                 raise RuntimeError("Failed to generate text")
             state.persist_state(self.previous_state)
 

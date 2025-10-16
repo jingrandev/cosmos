@@ -17,7 +17,7 @@ class CustomerProfile(BaseModel):
         on_delete=models.CASCADE,
         db_constraint=False,
         db_index=True,
-        related_name="+",
+        related_name="customer",
     )
     dietary_preference = models.CharField(
         _("dietary preference"),
